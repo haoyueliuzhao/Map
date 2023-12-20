@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>China Temperature Visualization</title>
+    <style>
+        #map-container {
+            width: 800px;
+            height: 600px;
+            margin: auto;
+        }
+        /* 添加样式规则 */
+        #explanation {
+            font-size: 20px; /* 调整文本大小 */
+            margin-top: 0px; /* 调整文本与图像之间的间距 */
+            text-align: center; /* 文本居中显示 */
+        }
+    </style>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+    
+    <p id="explanation">中国各个省份月平均温度图</p>
+    <div id="map-container"></div>
+    
+    <div>
+        <label for="time-selector">选择时间：</label>
+        <input type="range" id="time-selector" min="1" max="12" step="1" value="1">
+        <span id="selected-time"> 时间：月份</span>
+    </div>
+    <div id="tooltip" style="position: absolute; display: none; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></div>
+    <div id="legend"></div>
+   
+
+    <script>
+        var width = 800;
+        var height = 600;
+
+        var svg = d3.select("#map-container")
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .append("g")
+                    .attr("transform", "translate(-850,700) scale(12,-12)");
+
+        // 创建颜色比例尺
+        var colorScale = d3.scaleSequential(d3.interpolateViridis);
+
+        var path = d3.geoPath();
+
+        var china;
+
+        // 加载中国地图的GeoJSON数据
+        d3.json("china.geojson").then(function(chinaData) {
+            china = chinaData;  // 将加载的GeoJSON数据赋给 'china' 变量
+            // 加载气温数据
+            d3.json("temperature_data.json").then(function(temperatureData) {
+                
+                var temperatureDataByTime = processDataByTime(temperatureData);
+
+                // 获取时间选择器和显示选择时间的元素
+                var timeSelector = document.getElementById("time-selector");
+                var selectedTimeElement = document.getElementById("selected-time");
+                // 初始化颜色比例尺的域
+                var colorDomain = d3.extent(temperatureData, function(d) {
+                    return d.temperature;
+                });
+                colorScale.domain(colorDomain);
+
+                // 初始化图例
+                var legend = d3.select("#legend")
+                    .append("svg")
+                    .attr("width", 300)
+                    .attr("height", 40);
+
+                // 更新图例
+                function updateLegend() {
+                    var legendData = d3.range(colorScale.domain()[0], colorScale.domain()[1], (colorScale.domain()[1] - colorScale.domain()[0]) / 10);
+                    
+                    legend.selectAll("rect")
+                        .data(legendData)
+                        .enter()
+                        .append("rect")
+                        .attr("x", function(d, i) { return i * 20; })
+                        .attr("width", 20)
+                        .attr("height", 20)
+                        .attr("fill", function(d) { return colorScale(d); });
+
+                    legend.selectAll("text")
+                        .data(legendData)
+                        .enter()
+                        .append("text")
+                        .attr("x", function(d, i) { return i * 20 + 10; })
+                        .attr("y", 30)
+                        .attr("text-anchor", "middle")
+                        .text(function(d) { return Math.round(d); })
+                        .style("font-size", "12px");
+                }
+
+                // 在更新地图之前调用更新图例
+                updateLegend();
+
+                // 监听时间选择器的变化
+                timeSelector.addEventListener("input", function() {
+                    var selectedTime = parseInt(timeSelector.value);
+                    selectedTimeElement.textContent = "时间: " + selectedTime + "月份";
+                    updateMap(temperatureDataByTime[selectedTime]);
+                });
+
+                // 初始化地图
+                updateMap(temperatureDataByTime[1]);
+            });
+        });
+        // 处理气温数据，按时间组织
+        function processDataByTime(data) {
+            var result = {};
+            data.forEach(function(entry) {
+                var time = entry.time;
+                if (!result[time]) {
+                    result[time] = [];
+                }
+                result[time].push({ "name": entry.name, "temperature": entry.temperature });
+            });
+            return result;
+        }
+
+        // 更新地图的函数
+        function updateMap(data) {
+            svg.selectAll("path")
+                .data(china.features)
+                .join("path")
+                .attr("d", path)  // 使用地理路径生成器
+                .attr("fill", function(d) {
+                    var regionName = d.properties.name;
+                    var temperatureEntry = data.find(function(item) {
+                        return item.name === regionName;
+                    });
+                    return temperatureEntry ? colorScale(temperatureEntry.temperature) : "#ccc";
+                })
+                .on("mouseover", function(event, d) {
+                    var regionName = d.properties.name;
+                    var temperatureEntry = data.find(function(item) {
+                        return item.name === regionName;
+                    });
+                    var tooltip = d3.select("#tooltip");
+                    tooltip.html("地区: " + regionName + "<br>平均温度: " + (temperatureEntry ? temperatureEntry.temperature+" °C" : "N/A"));
+                    tooltip.style("left", (event.pageX + 10) + "px");
+                    tooltip.style("top", (event.pageY - 10) + "px");
+                    tooltip.style("display", "block");
+                })
+                .on("mouseout", function() {
+                    d3.select("#tooltip").style("display", "none");
+                });
+        }
+    </script>
+
+</body>
+</html>
+
