@@ -53,7 +53,7 @@
         var china;
 
         // 加载中国地图的GeoJSON数据
-        d3.json("china.geojson").then(function(chinaData) {
+        d3.json("china.geoJson").then(function(chinaData) {
             china = chinaData;  // 将加载的GeoJSON数据赋给 'china' 变量
             // 加载气温数据
             d3.json("temperature_data.json").then(function(temperatureData) {
