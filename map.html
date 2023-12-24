@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>China Temperature Visualization</title>
     <style>
+      body {
+            background-image: url('background.jpg'); 
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-attachment: fixed; 
+             margin: 0; /* 移除默认的 body 边距*/ 
+            font-family: 'Sans-serif'; 
+        }
         #map-container {
             width: 800px;
             height: 600px;
@@ -13,7 +21,7 @@
         }
         /* 添加样式规则 */
         #explanation {
-            font-size: 20px; /* 调整文本大小 */
+            font-size: 30px; /* 调整文本大小 */
             margin-top: 0px; /* 调整文本与图像之间的间距 */
             text-align: center; /* 文本居中显示 */
         }
@@ -62,6 +70,42 @@
       stroke: white;
     }
     </style>
+    <title>带交互功能的柱状图示例 - D3.js</title>
+    <style>
+      .tooltip {
+           position: absolute;
+           text-align: center;
+           width: auto;
+           height: auto;
+           padding: 6px;
+           font: 12px sans-serif;
+           background: lightsteelblue;
+           border: 0px;
+           border-radius: 8px;
+           pointer-events: none;
+       }
+       
+       .select-container {
+           position: absolute;
+           top: 10px; /* Adjust the height as needed */
+           left: 50%;
+           transform: translateX(-50%);
+           display: flex;
+           justify-content: space-between;
+           width: 900px; /* This should match the width of your chart for equal alignment */
+       }
+
+       .select-container .select-box {
+           flex: 2;
+           display: flex;
+           justify-content: center; /* Center the select within the box */
+       }
+
+       #my_dataviz {
+           align-self: center;
+           margin-top: 60px; /* Adjust the height to provide space for select elements */
+       }
+   </style>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -606,6 +650,169 @@ function drawChart(province) {
     drawChart(Object.keys(provincesData)[0]);
   </script>
 
+
+
+
+<h1 style="text-align: center;">中国各省逐月平均气温条形图</h1>
+<span class="label">月份</span>
+<select id="dataSelect">
+    <option value="data1">1月</option>
+    <option value="data2">2月</option>
+    <option value="data3">3月</option>
+    <option value="data4">4月</option>
+    <option value="data5">5月</option>
+    <option value="data6">6月</option>
+    <option value="data7">7月</option>
+    <option value="data8">8月</option>
+    <option value="data9">9月</option>
+    <option value="data10">10月</option>
+    <option value="data11">11月</option>
+    <option value="data12">12月</option>
+</select> 
+<span class="label">    顺序</span>
+<select id="sortSelect">
+    <option value="temperature" selected>按温度正序</option>
+    <option value="-temperature">按温度倒序</option>
+    <option value="province">按省份正序</option>
+</select>
+<svg id="my_dataviz" width2="1800" height2="600"></svg>
+<script>
+    // 原始的数据
+    const datasets = {
+        data1: 
+        [{ province: "安徽省", temperature: 4.087167489 },{ province: "北京市", temperature: -4.656732493 },{ province: "福建省", temperature: 10.35605645 },{ province: "甘肃省", temperature: -6.99277324 },{ province: "广东省", temperature: 14.21078612 },{ province: "广西壮族自治区", temperature: 11.38997921 },{ province: "贵州省", temperature: 5.041643957 },{ province: "海南省", temperature: 20.10140864 },{ province: "河北省", temperature: -5.332421872 },{ province: "河南省", temperature: 1.716843332 },{ province: "黑龙江省", temperature: -19.0107377 },{ province: "湖北省", temperature: 3.713478798 },{ province: "湖南省", temperature: 5.552874586 },{ province: "吉林省", temperature: -14.52469301 },{ province: "江苏省", temperature: 3.523961894 },{ province: "江西省", temperature: 7.508967791 },{ province: "辽宁省", temperature: -8.715347929 },{ province: "内蒙古自治区", temperature: -13.20370466 },{ province: "宁夏回族自治区", temperature: -9.439665527 },{ province: "青海省", temperature: -14.2267286 },{ province: "山东省", temperature: 2.461735678 },{ province: "山西省", temperature: -0.538927368 },{ province: "陕西省", temperature: -2.151837492 },{ province: "上海市", temperature: 6.82295609 },{ province: "四川省", temperature: 6.456877523 },{ province: "台湾省", temperature: 18.73276521 },{ province: "天津市", temperature: -1.757293692 },{ province: "西藏自治区", temperature: -2.838165161 },{ province: "香港特别行政区", temperature: 16.38912964 },{ province: "新疆维吾尔自治区", temperature: -9.539664387 },{ province: "云南省", temperature: 7.896578198 },{ province: "浙江省", temperature: 8.712344561 },{ province: "重庆市", temperature: 10.379551796 }]
+        ,
+        data2: [
+        { province: "安徽省", temperature: 3.847145912 },{ province: "北京市", temperature: -3.573910943 },{ province: "福建省", temperature: 8.058074809 },{ province: "甘肃省", temperature: -7.493968399 },{ province: "广东省", temperature: 11.15491045 },{ province: "广西壮族自治区", temperature: 8.601025073 },{ province: "贵州省", temperature: 3.628460141 },{ province: "海南省", temperature: 18.5384664 },{ province: "河北省", temperature: -4.672770122 },{ province: "河南省", temperature: 3.090722842 },{ province: "黑龙江省", temperature: -14.01554239 },{ province: "湖北省", temperature: 3.795672428 },{ province: "湖南省", temperature: 4.509524492 },{ province: "吉林省", temperature: -11.50059819 },{ province: "江苏省", temperature: 3.666426857 },{ province: "江西省", temperature: 5.716047625 },{ province: "辽宁省", temperature: -6.693426856 },{ province: "内蒙古自治区", temperature: -11.8190473 },{ province: "宁夏回族自治区", temperature: -4.476474098 },{ province: "青海省", temperature: -14.60513786 },{ province: "山东省", temperature: 1.063345887 },{ province: "山西省", temperature: -3.808820803 },{ province: "陕西省", temperature: -0.992062998 },{ province: "上海市", temperature: 5.192593332 },{ province: "四川省", temperature: -4.474386651 },{ province: "台湾省", temperature: 14.02950116 },{ province: "天津市", temperature: -1.326272107 },{ province: "西藏自治区", temperature: -15.5138591 },{ province: "香港特别行政区", temperature: 14.16126633 },{ province: "新疆维吾尔自治区", temperature: -7.860836841 },{ province: "云南省", temperature: 7.646147917 },{ province: "浙江省", temperature: 4.582463239 },{ province: "重庆市", temperature: 4.683703534 }
+        ],
+       data3:
+       [
+       { province:"安徽省", temperature: 12.67318723 },{ province: "北京市", temperature: 4.271977216 },{ province: "福建省", temperature: 15.81231093 },{ province: "甘肃省", temperature: 3.785029371 },{ province: "广东省", temperature: 19.41658946 },{ province: "广西壮族自治区", temperature: 18.61513071 },{ province: "贵州省", temperature: 13.47961399 },{ province: "海南省", temperature: 23.4799923 },{ province: "河北省", temperature: 4.312020028 },{ province: "河南省", temperature: 11.43354143 },{ province: "黑龙江省", temperature: -3.512860194 },{ province: "湖北省", temperature: 12.55197251 },{ province: "湖南省", temperature: 14.30656871 },{ province: "吉林省", temperature: -0.930454568 },{ province: "江苏省", temperature: 11.38003145 },{ province: "江西省", temperature: 15.47010275 },{ province: "辽宁省", temperature: 2.198208919 },{ province: "内蒙古自治区", temperature: -0.187374834 },{ province: "宁夏回族自治区", temperature: 7.283889041 },{ province: "青海省", temperature: -3.525205414 },{ province: "山东省", temperature: 8.798950972 },{ province: "山西省", temperature: 5.460552487 },{ province: "陕西省", temperature: 8.680787859 },{ province: "上海市", temperature: 11.94304541 },{ province: "四川省", temperature: 5.269851615 },{ province: "台湾省", temperature: 17.79675554 },{ province: "天津市", temperature: 6.506912371 },{ province: "西藏自治区", temperature: -5.817952364 },{ province: "香港特别行政区", temperature: 20.38821411 },{ province: "新疆维吾尔自治区", temperature: 2.966825469 },{ province: "云南省", temperature: 15.4747145 },{ province: "浙江省", temperature: 13.09537571 },{ province: "重庆市", temperature: 13.60762262 }
+    ]
+       ,
+       data4:[
+       { province: "安徽省", temperature: 17.06993414 },{ province: "北京市", temperature: 12.66132171 },{ province: "福建省", temperature: 17.7290744 },{ province: "甘肃省", temperature: 7.542465154 },{ province: "广东省", temperature: 20.79866191 },{ province: "广西壮族自治区", temperature: 19.79997685 },{ province: "贵州省", temperature: 14.94791834 },{ province: "海南省", temperature: 23.835079 },{ province: "河北省", temperature: 12.2109827 },{ province: "河南省", temperature: 17.20140378 },{ province: "黑龙江省", temperature: 5.177104793 },{ province: "湖北省", temperature: 16.51315673 },{ province: "湖南省", temperature: 17.52447526 },{ province: "吉林省", temperature: 8.109271203 },{ province: "江苏省", temperature: 16.23969393 },{ province: "江西省", temperature: 18.0111359 },{ province: "辽宁省", temperature: 10.38064833 },{ province: "内蒙古自治区", temperature: 7.340967932 },{ province: "宁夏回族自治区", temperature: 10.95724015 },{ province: "青海省", temperature: -1.260451769 },{ province: "山东省", temperature: 15.60046295 },{ province: "山西省", temperature: 11.37846266 },{ province: "陕西省", temperature: 12.92205738 },{ province: "上海市", temperature: 15.82934519 },{ province: "四川省", temperature: 6.371304361 },{ province: "台湾省", temperature: 19.12262555 },{ province: "天津市", temperature: 15.7324146 },{ province: "西藏自治区", temperature: -2.049209955 },{ province: "香港特别行政区", temperature: 22.11169815 },{ province: "新疆维吾尔自治区", temperature: 10.01091213 },{ province: "云南省", temperature: 15.41771483 },{ province: "浙江省", temperature: 16.34626428 },{ province: "重庆市", temperature: 15.84173077 }
+       ]
+       ,
+       data5:[{ province:"安徽省", temperature: 20.71173096 },{ province:"北京市", temperature: 18.60999745 },{ province:"福建省", temperature: 19.24024256 },{ province:"甘肃省", temperature: 13.6310474 },{ province:"广东省", temperature: 22.55219001 },{ province:"广西壮族自治区", temperature: 21.5309367 },{ province:"贵州省", temperature: 16.98563529 },{ province:"海南省", temperature: 25.34031873 },{ province:"河北省", temperature: 17.38259116 },{ province:"河南省", temperature: 20.964819 },{ province:"黑龙江省", temperature: 11.74237629 },{ province:"湖北省", temperature: 19.42748738 },{ province:"湖南省", temperature: 19.65770788 },{ province:"吉林省", temperature: 13.39170559 },{ province:"江苏省", temperature: 20.6798489 },{ province:"江西省", temperature: 20.39487258 },{ province:"辽宁省", temperature: 16.02782431 },{ province:"内蒙古自治区", temperature: 14.01126018 },{ province:"宁夏回族自治区", temperature: 16.61904674 },{ province:"青海省", temperature: 3.674251256 },{ province:"山东省", temperature: 20.81044419 },{ province:"山西省", temperature: 15.47459036 },{ province:"陕西省", temperature: 17.07055226 },{ province:"上海市", temperature: 19.449886 },{ province:"四川省", temperature: 10.73404453 },{ province:"台湾省", temperature: 20.80317959 },{ province:"天津市", temperature: 21.01934786 },{ province:"西藏自治区", temperature: 1.864710497 },{ province:"香港特别行政区", temperature: 23.82200623 },{ province:"新疆维吾尔自治区", temperature: 16.79289556 },{ province:"云南省", temperature: 16.84545279 },{ province:"浙江省", temperature: 18.580818 },{ province:"重庆市", temperature: 18.64737711 }]
+        ,
+        data6:[{ province: "安徽省", temperature: 27.00031522 },{ province: "北京市", temperature: 23.02294185 },{ province: "福建省", temperature: 23.4424555 },{ province: "甘肃省", temperature: 18.71683062 },{ province: "广东省", temperature: 25.81432022 },{ province: "广西壮族自治区", temperature: 25.38425297 },{ province: "贵州省", temperature: 21.7544649 },{ province: "海南省", temperature: 28.0379229 },{ province: "河北省", temperature: 22.81249015 },{ province: "河南省", temperature: 28.5365338 },{ province: "黑龙江省", temperature: 18.38034798 },{ province: "湖北省", temperature: 25.56216522 },{ province: "湖南省", temperature: 25.27376329 },{ province: "吉林省", temperature: 18.16770191 },{ province: "江苏省", temperature: 26.9539903 },{ province: "江西省", temperature: 25.16015687 },{ province: "辽宁省", temperature: 20.06969226 },{ province: "内蒙古自治区", temperature: 20.2732714 },{ province: "宁夏回族自治区", temperature: 22.41480607 },{ province: "青海省", temperature: 7.837497251 },{ province: "山东省", temperature: 26.12336655 },{ province: "山西省", temperature: 22.36851791 },{ province: "陕西省", temperature: 23.3155245 },{ province: "上海市", temperature: 25.11120502 },{ province: "四川省", temperature: 14.92612842 },{ province: "台湾省", temperature: 23.27238404 },{ province: "天津市", temperature: 25.22940735 },{ province: "西藏自治区", temperature: 6.236725695 },{ province: "香港特别行政区", temperature: 27.01007843 },{ province: "新疆维吾尔自治区", temperature: 20.09983338 },{ province: "云南省", temperature: 18.65138443 },{ province: "浙江省", temperature: 24.13984142 },{ province: "重庆市", temperature: 23.58762766 }]
+        , 
+        data7:[
+        { province: "安徽省", temperature: 28.77269559 },{ province: "北京市", temperature: 24.92628497 },{ province: "福建省", temperature: 27.74167149 },{ province: "甘肃省", temperature: 20.16270701 },{ province: "广东省", temperature: 27.75994911 },{ province: "广西壮族自治区", temperature: 26.87477574 },{ province: "贵州省", temperature: 24.28755209 },{ province: "海南省", temperature: 27.64283547 },{ province: "河北省", temperature: 23.7843217 },{ province: "河南省", temperature: 27.09464944 },{ province: "黑龙江省", temperature: 22.23046356 },{ province: "湖北省", temperature: 27.52471273 },{ province: "湖南省", temperature: 28.10105019 },{ province: "吉林省", temperature: 22.18304585 },{ province: "江苏省", temperature: 28.60682442 },{ province: "江西省", temperature: 29.28647832 },{ province: "辽宁省", temperature: 23.66824828 },{ province: "内蒙古自治区", temperature: 22.89228667 },{ province: "宁夏回族自治区", temperature: 23.14571694 },{ province: "青海省", temperature: 10.43624571 },{ province: "山东省", temperature: 26.23891196 },{ province: "山西省", temperature: 21.76865184 },{ province: "陕西省", temperature: 23.44038844 },{ province: "上海市", temperature: 29.47646474 },{ province: "四川省", temperature: 17.49567927 },{ province: "台湾省", temperature: 24.50344648 },{ province: "天津市", temperature: 26.75086177 },{ province: "西藏自治区", temperature: 8.477777421 },{ province: "香港特别行政区", temperature: 28.55161285 },{ province: "新疆维吾尔自治区", temperature: 22.06619279 },{ province: "云南省", temperature: 20.30709347 },{ province: "浙江省", temperature: 29.29467087 },{ province: "重庆市", temperature: 26.64909014 }
+        ]
+        ,
+        data8:[
+        { province:"安徽省", temperature: 29.58300896 },{ province:"北京市", temperature: 23.19611262 },{ province:"福建省", temperature: 27.80209044 },{ province:"甘肃省", temperature: 19.41894657 },{ province:"广东省", temperature: 27.0191854 },{ province:"广西壮族自治区", temperature: 26.65280288 },{ province:"贵州省", temperature: 25.0501658 },{ province:"海南省", temperature: 26.99897317 },{ province:"河北省", temperature: 22.64422312 },{ province:"河南省", temperature: 27.732508 },{ province:"黑龙江省", temperature: 18.55161512 },{ province:"湖北省", temperature: 28.64362987 },{ province:"湖南省", temperature: 29.92921988 },{ province:"吉林省", temperature: 19.74458526 },{ province:"江苏省", temperature: 29.32836528 },{ province:"江西省", temperature: 30.77824992 },{ province:"辽宁省", temperature: 22.16193374 },{ province:"内蒙古自治区", temperature: 19.744246 },{ province:"宁夏回族自治区", temperature: 22.1321515 },{ province:"青海省", temperature: 11.8354765 },{ province:"山东省", temperature: 26.03355886 },{ province:"山西省", temperature: 21.24706706 },{ province:"陕西省", temperature: 23.55411032 },{ province:"上海市", temperature: 29.96358581 },{ province:"四川省", temperature: 18.97808363 },{ province:"台湾省", temperature: 24.13705003 },{ province:"天津市", temperature: 25.56051356 },{ province:"西藏自治区", temperature: 8.332483277 },{ province:"香港特别行政区", temperature: 27.58394241 },{ province:"新疆维吾尔自治区", temperature: 19.70930817 },{ province:"云南省", temperature: 20.02131791 },{ province:"浙江省", temperature: 29.90814994 },{ province:"重庆市", temperature: 29.15871729 }
+        ]
+        ,
+        data9:[
+            { province: "安徽省", temperature: 23.39513676 },{ province: "北京市", temperature: 20.48953738 },{ province: "福建省", temperature: 25.62496147 },{ province: "甘肃省", temperature: 14.54981217 },{ province: "广东省", temperature: 26.91511325 },{ province: "广西壮族自治区", temperature: 25.74735664 },{ province: "贵州省", temperature: 21.08702825 },{ province: "海南省", temperature: 26.49234421 },{ province: "河北省", temperature: 19.35762627 },{ province: "河南省", temperature: 22.869388 },{ province: "黑龙江省", temperature: 13.88784396 },{ province: "湖北省", temperature: 23.05108994 },{ province: "湖南省", temperature: 25.91591307 },{ province: "吉林省", temperature: 16.00580261 },{ province: "江苏省", temperature: 22.48736415 },{ province: "江西省", temperature: 26.59390327 },{ province: "辽宁省", temperature: 18.19498822 },{ province: "内蒙古自治区", temperature: 15.86135622 },{ province: "宁夏回族自治区", temperature: 16.82738289 },{ province: "青海省", temperature: 4.823928059 },{ province: "山东省", temperature: 21.59256724 },{ province: "山西省", temperature: 16.53413542 },{ province: "陕西省", temperature: 17.48127258 },{ province: "上海市", temperature: 23.57042681 },{ province: "四川省", temperature: 12.67120593 },{ province: "台湾省", temperature: 22.65961928 },{ province: "天津市", temperature: 22.62559215 },{ province: "西藏自治区", temperature: 3.744424806 },{ province: "香港特别行政区", temperature: 27.6914444 },{ province: "新疆维吾尔自治区", temperature: 16.05843415 },{ province: "云南省", temperature: 17.92379574 },{ province: "浙江省", temperature: 23.47328822 },{ province: "重庆市", temperature: 21.57101191 }
+        ]
+        ,
+        data10:[
+        { province: "安徽省", temperature: 16.50021713 },{ province: "北京市", temperature: 10.95565375 },{ province: "福建省", temperature: 21.05727257 },{ province: "甘肃省", temperature: 6.484641494 },{ province: "广东省", temperature: 23.24336751 },{ province: "广西壮族自治区", temperature: 21.5925155 },{ province: "贵州省", temperature: 16.12162604 },{ province: "海南省", temperature: 23.91193429 },{ province: "河北省", temperature: 10.20512314 },{ province: "河南省", temperature: 14.93036488 },{ province: "黑龙江省", temperature: 3.632511075 },{ province: "湖北省", temperature: 16.16068469 },{ province: "湖南省", temperature: 18.89338322 },{ province: "吉林省", temperature: 6.094644439 },{ province: "江苏省", temperature: 16.42376111 },{ province: "江西省", temperature: 20.28936444 },{ province: "辽宁省", temperature: 9.050843779 },{ province: "内蒙古自治区", temperature: 4.977815109 },{ province: "宁夏回族自治区", temperature: 9.899951942 },{ province: "青海省", temperature: -1.888019396 },{ province: "山东省", temperature: 13.77950406 },{ province: "山西省", temperature: 8.930161951 },{ province: "陕西省", temperature: 10.97079579 },{ province: "上海市", temperature: 18.34260275 },{ province: "四川省", temperature: 8.509738087 },{ province: "台湾省", temperature: 20.95033716 },{ province: "天津市", temperature: 13.79488016 },{ province: "西藏自治区", temperature: -4.331140809 },{ province: "香港特别行政区", temperature: 24.47484589 },{ province: "新疆维吾尔自治区", temperature: 5.506207337 },{ province: "云南省", temperature: 15.61856893 },{ province: "浙江省", temperature: 17.88954851 },{ province: "重庆市", temperature: 16.47070102 }
+        ]
+        ,
+        data11:[
+        { province: "安徽省", temperature: 13.54158986 },{ province: "北京市", temperature: 4.044451659 },{ province: "福建省", temperature: 17.46383309 },{ province: "甘肃省", temperature: -0.270727146 },{ province: "广东省", temperature: 20.48568498 },{ province: "广西壮族自治区", temperature: 19.62339379 },{ province: "贵州省", temperature: 13.54733874 },{ province: "海南省", temperature: 23.73572274 },{ province: "河北省", temperature: 3.782561147 },{ province: "河南省", temperature: 11.10734673 },{ province: "黑龙江省", temperature: -6.160758244 },{ province: "湖北省", temperature: 12.99322851 },{ province: "湖南省", temperature: 15.60245066 },{ province: "吉林省", temperature: -1.87400345 },{ province: "江苏省", temperature: 13.4713631 },{ province: "江西省", temperature: 16.81259375 },{ province: "辽宁省", temperature: 2.246587848 },{ province: "内蒙古自治区", temperature: -3.930389792 },{ province: "宁夏回族自治区", temperature: 2.680568308 },{ province: "青海省", temperature: -7.985015726 },{ province: "山东省", temperature: 9.826040124 },{ province: "山西省", temperature: 3.646275724 },{ province: "陕西省", temperature: 6.066513129 },{ province: "上海市", temperature: 15.73595674 },{ province: "四川省", temperature: 4.921870408 },{ province: "台湾省", temperature: 19.93140953 },{ province: "天津市", temperature: 7.181246696 },{ province: "西藏自治区", temperature: -9.375751984 },{ province: "香港特别行政区", temperature: 22.02597427 },{ province: "新疆维吾尔自治区", temperature: -2.772431994 },{ province: "云南省", temperature: 13.65546908 },{ province: "浙江省", temperature: 15.39650276 },{ province: "重庆市", temperature: 13.41516977 }
+        ]
+        ,
+        data12: [
+      { province: "安徽省", temperature: 3.096735678 },{ province: "北京市", temperature: -5.956283219 },{ province: "福建省", temperature: 8.533443856 },{ province: "甘肃省", temperature: -8.212504437 },{ province: "广东省", temperature: 11.36917015 },{ province: "广西壮族自治区", temperature: 10.24478686 },{ province: "贵州省", temperature: 4.971001764 },{ province: "海南省", temperature: 17.73434163 },{ province: "河北省", temperature: -6.851340599 },{ province: "河南省", temperature: 1.584618343 },{ province: "黑龙江省", temperature: -18.34251885 },{ province: "湖北省", temperature: 3.893215776 },{ province: "湖南省", temperature: 5.776850304 },{ province: "吉林省", temperature: -14.50720777 },{ province: "江苏省", temperature: 2.866952138 },{ province: "江西省", temperature: 6.196859483 },{ province: "辽宁省", temperature: -8.998321867 },{ province: "内蒙古自治区", temperature: -14.9071803 },{ province: "宁夏回族自治区", temperature: -5.799014556 },{ province: "青海省", temperature: -12.78297794 },{ province: "山东省", temperature: -0.817302774 },{ province: "山西省", temperature: -5.897570225 },{ province: "陕西省", temperature: -2.049106146 },{ province: "上海市", temperature: 5.851101633 },{ province: "四川省", temperature: -0.802345951 },{ province: "台湾省", temperature: 14.43338274 },{ province: "天津市", temperature: -3.347761242 },{ province: "西藏自治区", temperature: -10.9155943 },{ province: "香港特别行政区", temperature: 14.04446793 },{ province: "新疆维吾尔自治区", temperature: -11.58347816 },{ province: "云南省", temperature: 8.789469579 },{ province: "浙江省", temperature: 5.127789987 },{ province: "重庆市", temperature: 5.598383321 }
+        ]
+    };
+    const tooltip1 = d3.select("body").append("div")
+.attr("class", "tooltip")
+.style("opacity", 0);
+
+document.addEventListener('DOMContentLoaded', function() {
+const margin = {top: 20, right: 55, bottom: 40, left: 115},
+    width2 = 1300 - margin.left - margin.right,
+    height2 = 600 - margin.top - margin.bottom;
+
+const svg2 = d3.select("#my_dataviz")
+    .attr("width", width2 + margin.left + margin.right)
+    .attr("height", height2 + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+function updateChart(selectedData, sortOrder) {
+    const data = [...datasets[selectedData]]; // 浅复制数据以避免排序影响原始数据集
+
+    data.sort((a, b) => {
+        if (sortOrder === "province") {
+            return d3.ascending(a.province, b.province);
+        } else if (sortOrder === "temperature") {
+            return d3.ascending(a.temperature, b.temperature);
+        } else if (sortOrder === "-temperature") {
+            return d3.descending(a.temperature, b.temperature);
+        }
+    });
+    const maxTemp = d3.max(data, d => Math.abs(d.temperature))+5; // Need the max absolute temperature value for symmetric domain around 0
+    const x = d3.scaleLinear()
+        .domain([-maxTemp, maxTemp]) // Symmetric domain to include negative values
+        .range([0, width2]); 
+
+    svg2.selectAll("*").remove();
+
+    // svg2.append("g")
+    //     .attr("transform", `translate(0,${height2 / 2})`)
+    //     .call(d3.axisBottom(x))
+    //     .selectAll("text")
+    //     .style("display", "none");
+
+    const y = d3.scaleBand()
+        .range([0, height2])
+        .domain(data.map(d => d.province))
+        .padding(0.2);
+
+    svg2.append("g")
+        .call(d3.axisRight(y)); // 使用 axisRight 替换 axisLeft
+
+        svg2.selectAll(".myRect")
+            .data(data)
+            .join("rect")
+            .attr("class", "myRect")
+            .attr("x", (d) => d.temperature >= 0 ? x(0) : x(d.temperature)) // 修改 x 坐标定位
+            .attr("y", (d) => y(d.province))
+            .attr("width", (d) => Math.abs(x(d.temperature) - x(0))) // 根据温度的正负来确定宽度
+            .attr("height", y.bandwidth())
+            .attr("fill", (d) => d.temperature >= 0 ? "#69b3a2" : "#d95f02")
+            .on("mouseover", function(event, d) {
+                tooltip.style("opacity", 0.9);
+                tooltip.html(d.province + "<br/>" + d.temperature.toFixed(2) + "°C")
+                    .style("left", (event.pageX + 15) + "px")
+                    .style("top", (event.pageY - 15) + "px");
+            })
+            .on("mouseout", function(d) {
+                tooltip.style("opacity", 0);
+            });
+    
+    svg2.selectAll(".tempLabel")
+        .data(data)
+        .join("text")
+        .attr("class", "tempLabel")
+        .attr("x", d => x(0) + 5) // 修改为 x(0) 并调整偏移量
+        .attr("y", d => y(d.province) + y.bandwidth() / 2 + 5)
+        .style("text-anchor", d => d.temperature >= 0 ? "start" : "end") // 修改对齐方式为 start
+        .text(d => d.temperature.toFixed(2) + "°C")
+        .attr("fill", "black");
+
+}
+
+updateChart("data1", "temperature");
+
+const dataSelect = document.getElementById('dataSelect');
+const sortSelect = document.getElementById('sortSelect');
+dataSelect.addEventListener('change', function(event) {
+    updateChart(event.target.value, sortSelect.value);
+});
+sortSelect.addEventListener('change', function(event) {
+    updateChart(dataSelect.value, event.target.value);
+});
+});
+</script>
 </body>
 
 </html>
